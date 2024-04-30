@@ -84,7 +84,7 @@ def main(page: ft.Page):
             process_running = False
             return
         
-        command = ["yt-dlp","--add-metadata","--no-color","--add-chapters"]
+        command = ["yt-dlp","--add-metadata","--no-color","--add-chapters","--progress-template","download:[Progress]%(progress._percent_str)s","--newline"]
         if url_input.value:
             command.append(url_input.value)
             if video_format.value == "mp4":
@@ -153,15 +153,26 @@ def main(page: ft.Page):
             process_running = True
             with open("log.log",mode="a",encoding="shift-jis") as f:
                 try:
-                    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True,creationflags=subprocess.CREATE_NO_WINDOW) as p:
+                    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True,creationflags=subprocess.CREATE_NO_WINDOW,encoding="shift-jis",bufsize=1) as p:
                         current_process = p
                         
                         for line in p.stdout:
-                            progress_text.value = line
-                            progress_text.update()
-                            f.write(line)
-                            page.title = f"yt-dlpGUI - {line}"
-                            page.update()
+                            if line.startswith("[Progress]"):
+                                progress_str = line.split("[Progress]")[1].split("%")[0].strip()
+                                progress_bar.value = float(progress_str) / 100
+                                progress_bar.update()
+                                page.window_progress_bar = progress_bar.value
+                                page.update()
+                            else:
+                                progress_bar.value = None
+                                page.window_progress_bar = None
+                                page.update()
+                                progress_text.value = line
+                                progress_text.update()
+                                f.write(line)
+                                print(fr"{line}")
+                                page.title = f"yt-dlpGUI - {line}"
+                                page.update()
                             
                         p.wait()
                         
