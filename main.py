@@ -1,12 +1,8 @@
 import flet as ft
 import os
 import subprocess
-import platform
 import pyperclip
-if platform == "Windows":
-    import winsound
-else:
-    pass
+from win11toast import toast
 
 home_dir = os.path.expanduser("~")
 quality_video = [ft.dropdown.Option("1080p"),ft.dropdown.Option("720p"),ft.dropdown.Option("480p"),ft.dropdown.Option("360p"),ft.dropdown.Option("240p")]
@@ -23,6 +19,7 @@ def main(page: ft.Page):
     page.padding = 20
     page.window_height = 900
     page.scroll = "auto"
+    icon = 'assets/icon.png'
     
     def save_dir_select(e:ft.FilePickerResultEvent):
         if e.path:
@@ -176,8 +173,7 @@ def main(page: ft.Page):
                             progress_bar.update()
                             page.window_progress_bar = 0
                             page.update()
-                            if platform == "Windows":
-                                winsound.MessageBeep(winsound.MB_ICONERROR)
+                            toast("Error", "An error occurred during processing.")
                         else:
                             page.snack_bar = ft.SnackBar(ft.Text("Download complete"))
                             page.title = "yt-dlpGUI"
@@ -186,18 +182,16 @@ def main(page: ft.Page):
                             page.snack_bar.open = True
                             page.window_progress_bar = 1
                             page.update()
-                            if platform == "Windows":
-                                winsound.MessageBeep(winsound.MB_ICONHAND)
+                            toast("Complete", "Download complete.")
                 except Exception as e:
                     page.snack_bar = ft.SnackBar(ft.Text(f"Error: {e}"))
+                    toast("Error", f"Error: {e}")
                     page.snack_bar.open = True
                     page.title = "yt-dlpGUI"
                     progress_bar.value = 0
                     progress_bar.update()
                     page.window_progress_bar = 0
                     page.update()
-                    if platform == "Windows":
-                        winsound.MessageBeep(winsound.MB_ICONERROR)
                         
                 finally:
                     process_running = False
