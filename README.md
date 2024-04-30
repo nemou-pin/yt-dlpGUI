@@ -17,3 +17,6 @@ I, the creator of this software, cannot be held responsible for any damages incu
 ## Reporting Bugs
 If you encounter any bugs, please open an issue.  
 Please also provide information on your current OS version, Python version, and the presence/name of any security software you are using, as this information can help in resolving issues.
+
+## Screenshot
+![](2024-04-30-10-41-26.png)
