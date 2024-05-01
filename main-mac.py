@@ -1,12 +1,13 @@
 import flet as ft
 import os
 import subprocess
-import platform
 import pyperclip
+import platform
 if platform == "Windows":
-    import winsound
+    from win11toast import toast
 else:
     pass
+
 
 home_dir = os.path.expanduser("~")
 quality_video = [ft.dropdown.Option("1080p"),ft.dropdown.Option("720p"),ft.dropdown.Option("480p"),ft.dropdown.Option("360p"),ft.dropdown.Option("240p")]
@@ -87,48 +88,48 @@ def main(page: ft.Page):
             process_running = False
             return
         
-        command = ["yt-dlp","--add-metadata","--no-color","--add-chapters"]
+        command = ["yt-dlp","--add-metadata","--no-color","--add-chapters","--progress-template","'download:[Progress]%(progress._percent_str)s'","--newline"]
         if url_input.value:
-            command.append(url_input.value)
+            command.append(f"'{url_input.value}'")
             if video_format.value == "mp4":
                 if video_quality.value == "1080p":
-                    command.append("--format=bestvideo[height<=1080]+bestaudio/best[ext=mp4][height<=1080]/best")
+                    command.append("'--format=bestvideo[height<=1080]+bestaudio/best[ext=mp4][height<=1080]/best'")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "720p":
-                    command.append("--format=bestvideo[height<=720]+bestaudio/best[ext=mp4][height<=720]/best")
+                    command.append("'--format=bestvideo[height<=720]+bestaudio/best[ext=mp4][height<=720]/best'")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "480p":
-                    command.append("--format=bestvideo[height<=480]+bestaudio/best[ext=mp4][height<=480]/best")
+                    command.append("'--format=bestvideo[height<=480]+bestaudio/best[ext=mp4][height<=480]/best'")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "360p":
-                    command.append("--format=bestvideo[height<=360]+bestaudio/best[ext=mp4][height<=360]/best")
+                    command.append("'--format=bestvideo[height<=360]+bestaudio/best[ext=mp4][height<=360]/best'")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "240p":
-                    command.append("--format=bestvideo[height<=240]+bestaudio/best[ext=mp4][height<=240]/best")
+                    command.append("'--format=bestvideo[height<=240]+bestaudio/best[ext=mp4][height<=240]/best'")
                     command.extend(["--merge-output-format","mp4"])
                 
             elif video_format.value == "mp3":
                 if video_quality.value == "320kbps":
-                    command.append("--format=bestaudio[ext=m4a]/best")
+                    command.append("'--format=bestaudio[ext=m4a]/best'")
                     command.extend(["-x","--audio-format","mp3","--audio-quality","320K"])
                 elif video_quality.value == "128kbps":
-                    command.append("--format=bestaudio[ext=m4a]/best")
+                    command.append("'--format=bestaudio[ext=m4a]/best'")
                     command.extend(["-x", "--audio-format", "mp3", "--audio-quality", "128K"])
                     
             elif video_format.value == "wav":
-                command.append("--format=bestaudio[ext=m4a]/best")
+                command.append("'--format=bestaudio[ext=m4a]/best'")
                 command.extend(["-x", "--audio-format", "wav"])
                 
             if enable_playlist.value == False:
                 if enable_playlist_index.value == True:
-                    command.extend(["-o",f"{save_dir_input.value}/%(playlist_index)s-%(title)s.%(ext)s"])
+                    command.extend(["-o",f"'{save_dir_input.value}/%(playlist_index)s-%(title)s.%(ext)s'"])
                 elif enable_playlist_index.value == False:
-                    command.extend(["-o",f"{save_dir_input.value}/%(title)s.%(ext)s"])
+                    command.extend(["-o",f"'{save_dir_input.value}/%(title)s.%(ext)s'"])
             elif enable_playlist.value == True:
                 if enable_playlist_index.value == True:
-                    command.extend(["-o", f"{save_dir_input.value}/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s"])
+                    command.extend(["-o", f"'{save_dir_input.value}/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s'"])
                 elif enable_playlist_index.value == False:
-                    command.extend(["-o", f"{save_dir_input.value}/%(playlist_title)s/%(title)s.%(ext)s"])
+                    command.extend(["-o", f"'{save_dir_input.value}/%(playlist_title)s/%(title)s.%(ext)s'"])
                 
             if enable_multiconnection.value == True:
                 command.extend(["-N",f"{multiconnection_num.value}"])
@@ -141,7 +142,7 @@ def main(page: ft.Page):
                     
             if enable_cookie.value == True:
                 if cookie_file.value:
-                    command.extend(["--cookies", f"{cookie_file.value}"])
+                    command.extend(["--cookies", f"'{cookie_file.value}'"])
                 else:
                     page.snack_bar = ft.SnackBar(ft.Text("Cookie file not selected"))
                     page.snack_bar.open = True
@@ -150,22 +151,32 @@ def main(page: ft.Page):
             
             progress_bar.value = None
             page.window_progress_bar = None
+            command = ' '.join(command)
+            print(command)
             page.update()
             progress_bar.update()
             process_running = True
-            command = ' '.join(command)
-            print(command)
             with open("log.log",mode="a",encoding="shift-jis") as f:
                 try:
-                    with subprocess.Popen(command,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True) as p:
+                    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True,creationflags=0,bufsize=1,start_new_session=True,shell=True) as p:
                         current_process = p
                         
                         for line in p.stdout:
-                            progress_text.value = line
-                            progress_text.update()
-                            f.write(line)
-                            page.title = f"yt-dlpGUI - {line}"
-                            page.update()
+                            if line.startswith("[Progress]"):
+                                progress_str = line.split("[Progress]")[1].split("%")[0].strip()
+                                progress_bar.value = float(progress_str) / 100
+                                progress_bar.update()
+                                page.window_progress_bar = progress_bar.value
+                                page.update()
+                            else:
+                                progress_bar.value = None
+                                page.window_progress_bar = None
+                                page.update()
+                                progress_text.value = line
+                                progress_text.update()
+                                f.write(line)
+                                page.title = f"yt-dlpGUI - {line}"
+                                page.update()
                             
                         p.wait()
                         
@@ -178,31 +189,33 @@ def main(page: ft.Page):
                             page.window_progress_bar = 0
                             page.update()
                             if platform == "Windows":
-                                winsound.MessageBeep(winsound.MB_ICONERROR)
+                                toast("Error", "An error occurred during processing.")
                         else:
                             page.snack_bar = ft.SnackBar(ft.Text("Download complete"))
                             page.title = "yt-dlpGUI"
                             progress_bar.value = 1
                             progress_bar.update()
                             page.snack_bar.open = True
-                            page.window_progress_bar = 1
+                            page.window_progress_bar = None
                             page.update()
                             if platform == "Windows":
-                                winsound.MessageBeep(winsound.MB_ICONHAND)
+                                toast("Complete", "Download complete.")
                 except Exception as e:
                     page.snack_bar = ft.SnackBar(ft.Text(f"Error: {e}"))
+                    if platform == "Windows":
+                        toast("Error", f"Error: {e}")
                     page.snack_bar.open = True
                     page.title = "yt-dlpGUI"
                     progress_bar.value = 0
                     progress_bar.update()
-                    page.window_progress_bar = 0
+                    page.window_progress_bar = None
                     page.update()
-                    if platform == "Windows":
-                        winsound.MessageBeep(winsound.MB_ICONERROR)
                         
                 finally:
                     process_running = False
                     current_process = None
+                    page.window_progress_bar = None
+                    page.update()
             
         else:
             # SnackBar
@@ -233,4 +246,4 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.app(target=main,assets_dir="assets")

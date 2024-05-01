@@ -2,7 +2,9 @@ import flet as ft
 import os
 import subprocess
 import pyperclip
+import platform
 from win11toast import toast
+
 
 home_dir = os.path.expanduser("~")
 quality_video = [ft.dropdown.Option("1080p"),ft.dropdown.Option("720p"),ft.dropdown.Option("480p"),ft.dropdown.Option("360p"),ft.dropdown.Option("240p")]
@@ -184,7 +186,8 @@ def main(page: ft.Page):
                             progress_bar.update()
                             page.window_progress_bar = 0
                             page.update()
-                            toast("Error", "An error occurred during processing.")
+                            if platform == "Windows":
+                                toast("Error", "An error occurred during processing.")
                         else:
                             page.snack_bar = ft.SnackBar(ft.Text("Download complete"))
                             page.title = "yt-dlpGUI"
@@ -193,10 +196,12 @@ def main(page: ft.Page):
                             page.snack_bar.open = True
                             page.window_progress_bar = 1
                             page.update()
-                            toast("Complete", "Download complete.")
+                            if platform == "Windows":
+                                toast("Complete", "Download complete.")
                 except Exception as e:
                     page.snack_bar = ft.SnackBar(ft.Text(f"Error: {e}"))
-                    toast("Error", f"Error: {e}")
+                    if platform == "Windows":
+                        toast("Error", f"Error: {e}")
                     page.snack_bar.open = True
                     page.title = "yt-dlpGUI"
                     progress_bar.value = 0
