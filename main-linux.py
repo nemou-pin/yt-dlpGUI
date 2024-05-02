@@ -1,7 +1,6 @@
 import flet as ft
 import os
 import subprocess
-import pyperclip
 import platform
 if platform == "Windows":
     from win11toast import toast
@@ -62,21 +61,6 @@ def main(page: ft.Page):
         elif e.control.value == False:
             multiconnection_num.disabled = True
             multiconnection_num.update()
-            
-    def get_clip(e):
-        try:
-            url_input.value = pyperclip.paste()
-            page.snack_bar = ft.SnackBar(ft.Text("Pasted URL"))
-            page.snack_bar.open = True
-            page.update()
-        except pyperclip.PyperclipException as e:
-            page.snack_bar = ft.SnackBar(ft.Text("Error: " + str(e)))
-            page.snack_bar.open = True
-            page.update()
-        except Exception as e:
-            page.snack_bar = ft.SnackBar(ft.Text("Error: " + str(e)))
-            page.snack_bar.open = True
-            page.update()
     
     def download(e):
         global process_running
@@ -224,7 +208,6 @@ def main(page: ft.Page):
             page.update()
     
     url_input = ft.TextField(label="URL",icon=ft.icons.LINK,expand=True)
-    url_clip = ft.IconButton(icon=ft.icons.PASTE,on_click=get_clip,tooltip="Copy URL from clipboard")
     save_dir_input = ft.TextField(label="Save directory", icon=ft.icons.FOLDER,value=home_dir,expand=True)
     save_dir_button = ft.IconButton(icon=ft.icons.OPEN_IN_NEW, on_click=lambda _: save_dir.get_directory_path(dialog_title="保存先を選択",initial_directory=home_dir),tooltip="Select save destination")
     download_button = ft.FloatingActionButton(icon=ft.icons.DOWNLOAD,on_click=download)
@@ -242,7 +225,7 @@ def main(page: ft.Page):
     sel_cookie_file = ft.IconButton(icon=ft.icons.COOKIE,on_click=lambda _:cokkie_dialog.pick_files(allow_multiple=False,allowed_extensions=["txt"]))
     cookies = ft.Row([cookie_file,sel_cookie_file])
     
-    page.add(ft.Text("Main",size=24),ft.Row([url_input,url_clip]),ft.Row([save_dir_input,save_dir_button]),ft.Text("Option",size=24),ft.Row([video_format,video_quality]),embed_thumbnail,enable_playlist,enable_playlist_index,ft.Row([enable_multiconnection,multiconnection_num]),enable_cookie,cookies,ft.Text("Progress",size=24),progress_text,progress_bar, download_button)
+    page.add(ft.Text("Main",size=24),ft.Row([url_input]),ft.Row([save_dir_input,save_dir_button]),ft.Text("Option",size=24),ft.Row([video_format,video_quality]),embed_thumbnail,enable_playlist,enable_playlist_index,ft.Row([enable_multiconnection,multiconnection_num]),enable_cookie,cookies,ft.Text("Progress",size=24),progress_text,progress_bar, download_button)
 
 
 if __name__ == "__main__":
