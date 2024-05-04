@@ -91,19 +91,19 @@ def main(page: ft.Page):
             command.append(url_input.value)
             if video_format.value == "mp4":
                 if video_quality.value == "1080p":
-                    command.append("--format=bestvideo[height<=1080]+bestaudio/best[ext=mp4][height<=1080]/best")
+                    command.append("--format=bestvideo[height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]/best")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "720p":
-                    command.append("--format=bestvideo[height<=720]+bestaudio/best[ext=mp4][height<=720]/best")
+                    command.append("--format=bestvideo[height<=720]+bestaudio[ext=m4a]/best[ext=mp4][height<=720]/best")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "480p":
-                    command.append("--format=bestvideo[height<=480]+bestaudio/best[ext=mp4][height<=480]/best")
+                    command.append("--format=bestvideo[height<=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]/best")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "360p":
-                    command.append("--format=bestvideo[height<=360]+bestaudio/best[ext=mp4][height<=360]/best")
+                    command.append("--format=bestvideo[height<=360]+bestaudio[ext=m4a]/best[ext=mp4][height<=360]/best")
                     command.extend(["--merge-output-format","mp4"])
                 elif video_quality.value == "240p":
-                    command.append("--format=bestvideo[height<=240]+bestaudio/best[ext=mp4][height<=240]/best")
+                    command.append("--format=bestvideo[height<=240]+bestaudio[ext=m4a]/best[ext=mp4][height<=240]/best")
                     command.extend(["--merge-output-format","mp4"])
                 
             elif video_format.value == "mp3":
