@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: exe
-          path: main.dist/yt-dlpGUI.exe
+          path: dist/yt-dlpGUI.exe
 
   create-release:
     needs: build
