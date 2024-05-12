@@ -1,17 +1,21 @@
-name: Build
+name: Build and Release
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-
   build:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with: 
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
           python-version: '3.10.9'
 
       - name: Install Requirements
@@ -19,42 +23,41 @@ jobs:
           cd ${{ github.workspace }}
           pip install -r requirements.txt
 
-      - uses: Nuitka/Nuitka-Action@main
-        with:
-          nuitka-version: main
-          script-name: main.py
-          onefile: true
+      - name: Build exe
+        run: |
+          pip install nuitka
+          python -m nuitka --onefile main.py
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v2
         with:
           name: exe
-          path: build/main.exe
+          path: main.dist/main.exe
 
   create-release:
-
     needs: build
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set
-        run: |
-          DATE_TIME=`date +'%Y-%m-%d-%H-%M-%S'`
-          echo "DATE_TIME=${DATE_TIME}" >> $GITHUB_OUTPUT
-
-      - uses: actions/download-artifact@v4
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
         with:
           name: exe
           path: artifacts
 
-			- name: Create release
-				env:
-					GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Date
+        run: |
+          DATE_TIME=$(date +'%Y-%m-%d-%H-%M-%S')
+          echo "DATE_TIME=${DATE_TIME}" >> $GITHUB_ENV
 
-				run:
-					RELEASE_NAME=Build-${{ steps.datetime.outputs.DATE_TIME }}
-					TAG_NAME=build-${{ steps.datetime.outputs.DATE_TIME }}
-					gh release create "$TAG_NAME" ${{ github.workspace }}/artifacts/*.exe --title "$RELEASE_NAME"
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATE_TIME: ${{ env.DATE_TIME }}
+        run: |
+          RELEASE_NAME="Build-${DATE_TIME}"
+          TAG_NAME="build-${DATE_TIME}"
+          gh release create "$TAG_NAME" ${{ github.workspace }}/artifacts/*.exe --title "$RELEASE_NAME"
